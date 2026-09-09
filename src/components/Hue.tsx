@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useLayoutEffect } from 'react'
 import { usePicker } from '../context.js'
 import usePaintHue from '../hooks/usePaintHue.js'
 import { getHandleValue } from '../utils/utils.js'
@@ -22,6 +22,7 @@ const Hue = () => {
   const draggingRef = useRef(false)
   const didDragRef = useRef(false)
   const pendingHueRef = useRef<number | null>(null)
+  const displayHueRef = useRef(hc?.h ?? 0)
   const frameRef = useRef<number | null>(null)
   const hcRef = useRef(hc)
   const handleChangeRef = useRef(handleChange)
@@ -30,6 +31,15 @@ const Hue = () => {
     hcRef.current = hc
     handleChangeRef.current = handleChange
   }, [hc, handleChange])
+
+  useLayoutEffect(() => {
+    if (!draggingRef.current) {
+      displayHueRef.current = hc?.h ?? 0
+      if (handleRef.current) {
+        handleRef.current.style.left = `${displayHueRef.current * ((squareWidth - 18) / 360)}px`
+      }
+    }
+  }, [hc?.h, squareWidth])
 
   const handleDown = () => {
     startInteraction()
@@ -41,6 +51,7 @@ const Hue = () => {
     if (hueRef.current) {
       const newHue = getHandleValue(x, hueRef.current, barSize) * 3.6
       pendingHueRef.current = newHue
+      displayHueRef.current = newHue
 
       if (handleRef.current) {
         handleRef.current.style.left = `${newHue * ((squareWidth - 18) / 360)}px`
@@ -119,7 +130,7 @@ const Hue = () => {
           height: '18px',
           zIndex: 1000,
           position: 'absolute',
-          left: hc?.h * ((squareWidth - 18) / 360),
+          left: displayHueRef.current * ((squareWidth - 18) / 360),
           top: -2,
           cursor: 'ew-resize',
           boxSizing: 'border-box',
