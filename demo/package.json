@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@zdila/react-gradient-color-picker": "workspace:*",
+    "@yuann-se/react-gradient-color-picker": "workspace:*",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

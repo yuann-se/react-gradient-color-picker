@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import ColorPicker from '@zdila/react-gradient-color-picker'
+import ColorPicker from '@yuann-se/react-gradient-color-picker'
 
 const solidStart = 'rgba(224, 91, 70, 1)'
 const gradientStart =
