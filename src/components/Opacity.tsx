@@ -25,6 +25,7 @@ const Opacity = () => {
   const pendingOpacityRef = useRef<number | null>(null)
   const displayOpacityRef = useRef(hc?.a ?? 0)
   const frameRef = useRef<number | null>(null)
+  const boundsRef = useRef<DOMRect | null>(null)
   const hcRef = useRef(hc)
   const handleChangeRef = useRef(handleChange)
 
@@ -46,11 +47,34 @@ const Opacity = () => {
     startInteraction()
     draggingRef.current = true
     didDragRef.current = false
+    boundsRef.current = opacityRef.current?.parentElement?.getBoundingClientRect() ?? null
+  }
+
+  const commitOpacity = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
+    }
+
+    const opacity = pendingOpacityRef.current
+    if (opacity === null) return
+
+    const currentHc = hcRef.current
+    handleChangeRef.current(
+      `rgba(${currentHc.r}, ${currentHc.g}, ${currentHc.b}, ${opacity})`
+    )
+    pendingOpacityRef.current = null
   }
 
   const handleOpacity = (x: number) => {
     if (opacityRef.current) {
-      const newO = getHandleValue(x, opacityRef.current, barSize) / 100
+      const bounds = boundsRef.current
+      const newO = bounds
+        ? Math.round(
+            Math.max(0, Math.min(x - bounds.x - barSize / 2, bounds.width - 18)) /
+              ((bounds.width - 18) / 100)
+          ) / 100
+        : getHandleValue(x, opacityRef.current, barSize) / 100
       pendingOpacityRef.current = newO
       displayOpacityRef.current = newO
 
@@ -61,13 +85,7 @@ const Opacity = () => {
       if (frameRef.current === null) {
         frameRef.current = requestAnimationFrame(() => {
           frameRef.current = null
-          const opacity = pendingOpacityRef.current
-          if (opacity === null) return
-
-          const currentHc = hcRef.current
-          handleChangeRef.current(
-            `rgba(${currentHc.r}, ${currentHc.g}, ${currentHc.b}, ${opacity})`
-          )
+          commitOpacity()
         })
       }
     }
@@ -83,13 +101,18 @@ const Opacity = () => {
   const handleClick = (e: any) => {
     if (!didDragRef.current) {
       handleOpacity(e.clientX)
+      commitOpacity()
     }
     didDragRef.current = false
   }
 
   useEffect(() => {
     const handleUp = () => {
+      if (draggingRef.current) {
+        commitOpacity()
+      }
       draggingRef.current = false
+      boundsRef.current = null
     }
 
     window.addEventListener('pointerup', handleUp)
@@ -127,7 +150,12 @@ const Opacity = () => {
         // className="rbgcp-handle rbgcp-handle-opacity"
         id={`rbgcp-opacity-handle${pickerIdSuffix}`}
         ref={handleRef}
-        style={{ ...defaultStyles.rbgcpHandle, left: left * displayOpacityRef.current, top: -2 }}
+        style={{
+          ...defaultStyles.rbgcpHandle,
+          left: left * displayOpacityRef.current,
+          top: -2,
+          transition: 'none',
+        }}
       />
       <div
         ref={opacityRef}

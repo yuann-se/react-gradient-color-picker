@@ -2,7 +2,8 @@ import { useState } from 'react'
 import ColorPicker from '@zdila/react-gradient-color-picker'
 
 const solidStart = 'rgba(224, 91, 70, 1)'
-const gradientStart = 'linear-gradient(90deg, rgba(224,91,70,1) 0%, rgba(245,196,84,1) 100%)'
+const gradientStart =
+  'linear-gradient(90deg, rgba(224,91,70,1) 0%, rgba(245,196,84,1) 100%)'
 
 function App() {
   const [value, setValue] = useState(solidStart)
@@ -31,7 +32,7 @@ function App() {
             <span className="status-dot">Watching</span>
           </div>
           <div className="picker-frame" style={{ width: size }}>
-            <ColorPicker value={value} onChange={setValue} />
+            <ColorPicker value={value} onChange={setValue} hideControls />
           </div>
         </div>
 
@@ -39,10 +40,16 @@ function App() {
           <div className="control-group">
             <span className="label">Mode</span>
             <div className="segmented-control">
-              <button className={!value.includes('gradient') ? 'active' : ''} onClick={setSolid}>
+              <button
+                className={!value.includes('gradient') ? 'active' : ''}
+                onClick={setSolid}
+              >
                 Solid
               </button>
-              <button className={value.includes('gradient') ? 'active' : ''} onClick={setGradient}>
+              <button
+                className={value.includes('gradient') ? 'active' : ''}
+                onClick={setGradient}
+              >
                 Gradient
               </button>
             </div>
@@ -51,7 +58,14 @@ function App() {
           <label className="control-group" htmlFor="size">
             <span className="label">Picker width</span>
             <span className="range-value">{size}px</span>
-            <input id="size" type="range" min="294" max="520" value={size} onChange={(event) => setSize(Number(event.target.value))} />
+            <input
+              id="size"
+              type="range"
+              min="294"
+              max="520"
+              value={size}
+              onChange={(event) => setSize(Number(event.target.value))}
+            />
           </label>
 
           <div className="value-block">
