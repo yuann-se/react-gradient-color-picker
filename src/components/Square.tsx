@@ -18,6 +18,8 @@ const Square = () => {
   const { crossSize } = config
   const [dragging, setDragging] = useState(false)
   const canvas = useRef<HTMLCanvasElement>(null)
+  const [squareHue, setSquareHue] = useState(hc?.h ?? 0)
+  const squareHueRef = useRef(hc?.h ?? 0)
   const [x, y] = computeSquareXY(
     hc?.s,
     hc?.v * 100,
@@ -28,13 +30,38 @@ const Square = () => {
   const [dragPos, setDragPos] = useState({ x, y })
   const squareRef = useRef<HTMLDivElement>(null)
 
-  usePaintSquare(canvas, hc?.h, squareWidth, squareHeight)
+  usePaintSquare(canvas, squareHue, squareWidth, squareHeight)
+
+  useEffect(() => {
+    const handleHuePreview = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        hue: number
+        pickerIdSuffix: string
+      }>
+      if (customEvent.detail.pickerIdSuffix === pickerIdSuffix) {
+        squareHueRef.current = customEvent.detail.hue
+        setSquareHue(customEvent.detail.hue)
+      }
+    }
+
+    window.addEventListener('rbgcp-hue-preview', handleHuePreview)
+    return () => {
+      window.removeEventListener('rbgcp-hue-preview', handleHuePreview)
+    }
+  }, [pickerIdSuffix])
+
+  useEffect(() => {
+    if (!dragging) {
+      squareHueRef.current = hc?.h ?? 0
+      setSquareHue(hc?.h ?? 0)
+    }
+  }, [dragging, hc?.h])
 
   useEffect(() => {
     if (!dragging) {
       setDragPos({ x: hc?.v === 0 ? dragPos.x : x, y })
     }
-  }, [x, y])
+  }, [hc?.h, hc?.v, x, y])
 
   useEffect(() => {
     const handleUp = () => {
@@ -68,7 +95,9 @@ const Square = () => {
     const y1 = Math.max(0, Math.min(y + crossSize / 2, squareHeight))
     const newS = (x1 / squareWidth) * 100
     const newY = 100 - (y1 / squareHeight) * 100
-    const updated = tinycolor(`hsva(${hc?.h}, ${newS}%, ${newY}%, ${hc?.a})`)
+    const updated = tinycolor(
+      `hsva(${squareHueRef.current}, ${newS}%, ${newY}%, ${hc?.a})`
+    )
     handleChange(updated.toRgbString())
   }
 
@@ -115,7 +144,11 @@ const Square = () => {
         onPointerDown={handleCanvasDown}
         id={`rbgcp-square${pickerIdSuffix}`}
         ref={squareRef}
-        style={{ position: 'relative', cursor: 'ew-cross', touchAction: 'none' }}
+        style={{
+          position: 'relative',
+          cursor: 'ew-cross',
+          touchAction: 'none',
+        }}
       >
         <div
           style={{

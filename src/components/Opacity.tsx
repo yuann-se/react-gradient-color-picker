@@ -47,7 +47,8 @@ const Opacity = () => {
     startInteraction()
     draggingRef.current = true
     didDragRef.current = false
-    boundsRef.current = opacityRef.current?.parentElement?.getBoundingClientRect() ?? null
+    boundsRef.current =
+      opacityRef.current?.parentElement?.getBoundingClientRect() ?? null
   }
 
   const commitOpacity = () => {
@@ -71,7 +72,10 @@ const Opacity = () => {
       const bounds = boundsRef.current
       const newO = bounds
         ? Math.round(
-            Math.max(0, Math.min(x - bounds.x - barSize / 2, bounds.width - 18)) /
+            Math.max(
+              0,
+              Math.min(x - bounds.x - barSize / 2, bounds.width - 18)
+            ) /
               ((bounds.width - 18) / 100)
           ) / 100
         : getHandleValue(x, opacityRef.current, barSize) / 100

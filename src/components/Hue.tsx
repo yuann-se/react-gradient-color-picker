@@ -11,6 +11,7 @@ const Hue = () => {
     handleChange,
     squareWidth,
     hc,
+    setHc,
     pickerIdSuffix,
     startInteraction,
   } = usePicker()
@@ -52,6 +53,11 @@ const Hue = () => {
       const newHue = getHandleValue(x, hueRef.current, barSize) * 3.6
       pendingHueRef.current = newHue
       displayHueRef.current = newHue
+      window.dispatchEvent(
+        new CustomEvent('rbgcp-hue-preview', {
+          detail: { hue: newHue, pickerIdSuffix },
+        })
+      )
 
       if (handleRef.current) {
         handleRef.current.style.left = `${newHue * ((squareWidth - 18) / 360)}px`
@@ -64,7 +70,11 @@ const Hue = () => {
           if (hue === null) return
 
           const currentHc = hcRef.current
-          const tinyHsv = tinycolor({ h: hue, s: currentHc?.s, v: currentHc?.v })
+          const tinyHsv = tinycolor({
+            h: hue,
+            s: currentHc?.s,
+            v: currentHc?.v,
+          })
           const { r, g, b } = tinyHsv.toRgb()
           handleChangeRef.current(`rgba(${r}, ${g}, ${b}, ${currentHc.a})`)
         })
@@ -88,6 +98,11 @@ const Hue = () => {
 
   useEffect(() => {
     const handleUp = () => {
+      const hue = pendingHueRef.current
+      const currentHc = hcRef.current
+      if (hue !== null && currentHc?.s === 0) {
+        setHc({ ...currentHc, h: hue })
+      }
       draggingRef.current = false
     }
 
@@ -101,7 +116,7 @@ const Hue = () => {
         cancelAnimationFrame(frameRef.current)
       }
     }
-  }, [])
+  }, [pickerIdSuffix, setHc])
 
   return (
     <div
