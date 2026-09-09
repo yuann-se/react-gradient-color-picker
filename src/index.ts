@@ -7,6 +7,7 @@ export type {
   PassedConfig,
   LocalesProps,
   GradientProps,
+  GradientObject,
   ColorPickerProps,
 } from './shared/types.js'
 

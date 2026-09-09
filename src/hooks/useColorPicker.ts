@@ -1,7 +1,12 @@
 import tc from 'tinycolor2'
 import { useState, useEffect } from 'react'
 import { rgb2cmyk } from '../utils/converters.js'
-import { ColorsProps, GradientProps, PassedConfig } from '../shared/types.js'
+import {
+  ColorsProps,
+  GradientObject,
+  GradientProps,
+  PassedConfig,
+} from '../shared/types.js'
 import { isUpperCase, getDetails, getColorObj } from '../utils/utils.js'
 import { low, high, getColors, formatInputValues } from '../utils/formatters.js'
 
@@ -26,7 +31,7 @@ export const useColorPicker = (
   )
   const [previousColors, setPreviousColors] = useState([])
 
-  const getGradientObject = (currentValue?: string) => {
+  const getGradientObject = (currentValue?: string): GradientObject | undefined => {
     // When a currentValue is supplied, recompute the gradient details from
     // it too — otherwise isGradient/gradientType/degrees stay stale from the
     // initial `value` and the returned object describes the wrong gradient.
