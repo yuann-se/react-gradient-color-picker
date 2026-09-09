@@ -53,11 +53,9 @@ export default function PickerContextWrapper({
   const [hc, setHc] = useState({ ...rgba, ...hsv })
 
   useEffect(() => {
-    if (hsv?.s === 0) {
-      setHc({ ...rgba, ...hsv, h: hc?.h })
-    } else {
-      setHc({ ...rgba, ...hsv })
-    }
+    setHc((previousHc: typeof hc) =>
+      hsv?.s === 0 ? { ...rgba, ...hsv, h: previousHc?.h } : { ...rgba, ...hsv }
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentColor])
 

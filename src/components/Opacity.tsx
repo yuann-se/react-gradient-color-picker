@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useLayoutEffect, useRef } from 'react'
 import { usePicker } from '../context.js'
 import { getHandleValue } from '../utils/utils.js'
 
@@ -13,47 +13,110 @@ const Opacity = () => {
     pickerIdSuffix,
     startInteraction,
   } = usePicker()
-  const [dragging, setDragging] = useState(false)
   const { r, g, b } = hc
   const bg = `linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(${r},${g},${b},.5) 100%)`
   const { barSize } = config
+  const left = squareWidth - 18
 
   const opacityRef = useRef<HTMLDivElement>(null)
+  const handleRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+  const didDragRef = useRef(false)
+  const pendingOpacityRef = useRef<number | null>(null)
+  const displayOpacityRef = useRef(hc?.a ?? 0)
+  const frameRef = useRef<number | null>(null)
+  const boundsRef = useRef<DOMRect | null>(null)
+  const hcRef = useRef(hc)
+  const handleChangeRef = useRef(handleChange)
 
-  const stopDragging = () => {
-    setDragging(false)
-  }
+  useEffect(() => {
+    hcRef.current = hc
+    handleChangeRef.current = handleChange
+  }, [hc, handleChange])
+
+  useLayoutEffect(() => {
+    if (!draggingRef.current) {
+      displayOpacityRef.current = hc?.a ?? 0
+      if (handleRef.current) {
+        handleRef.current.style.left = `${left * displayOpacityRef.current}px`
+      }
+    }
+  }, [hc?.a, left])
 
   const handleDown = () => {
     startInteraction()
-    setDragging(true)
+    draggingRef.current = true
+    didDragRef.current = false
+    boundsRef.current =
+      opacityRef.current?.parentElement?.getBoundingClientRect() ?? null
+  }
+
+  const commitOpacity = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
+    }
+
+    const opacity = pendingOpacityRef.current
+    if (opacity === null) return
+
+    const currentHc = hcRef.current
+    handleChangeRef.current(
+      `rgba(${currentHc.r}, ${currentHc.g}, ${currentHc.b}, ${opacity})`
+    )
+    pendingOpacityRef.current = null
   }
 
   const handleOpacity = (x: number) => {
     if (opacityRef.current) {
-      const newO = getHandleValue(x, opacityRef.current, barSize) / 100
-      const newColor = `rgba(${r}, ${g}, ${b}, ${newO})`
-      handleChange(newColor)
+      const bounds = boundsRef.current
+      const newO = bounds
+        ? Math.round(
+            Math.max(
+              0,
+              Math.min(x - bounds.x - barSize / 2, bounds.width - 18)
+            ) /
+              ((bounds.width - 18) / 100)
+          ) / 100
+        : getHandleValue(x, opacityRef.current, barSize) / 100
+      pendingOpacityRef.current = newO
+      displayOpacityRef.current = newO
+
+      if (handleRef.current) {
+        handleRef.current.style.left = `${left * newO}px`
+      }
+
+      if (frameRef.current === null) {
+        frameRef.current = requestAnimationFrame(() => {
+          frameRef.current = null
+          commitOpacity()
+        })
+      }
     }
   }
 
   const handleMove = (e: any) => {
-    if (dragging) {
+    if (draggingRef.current) {
+      didDragRef.current = true
       handleOpacity(e.clientX)
     }
   }
 
   const handleClick = (e: any) => {
-    if (!dragging) {
+    if (!didDragRef.current) {
       handleOpacity(e.clientX)
+      commitOpacity()
     }
+    didDragRef.current = false
   }
-
-  const left = squareWidth - 18
 
   useEffect(() => {
     const handleUp = () => {
-      stopDragging()
+      if (draggingRef.current) {
+        commitOpacity()
+      }
+      draggingRef.current = false
+      boundsRef.current = null
     }
 
     window.addEventListener('pointerup', handleUp)
@@ -62,8 +125,11 @@ const Opacity = () => {
     return () => {
       window.removeEventListener('pointerup', handleUp)
       window.removeEventListener('pointermove', handleMove)
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+      }
     }
-  }, [dragging])
+  }, [])
 
   return (
     <div
@@ -87,7 +153,13 @@ const Opacity = () => {
       <div
         // className="rbgcp-handle rbgcp-handle-opacity"
         id={`rbgcp-opacity-handle${pickerIdSuffix}`}
-        style={{ ...defaultStyles.rbgcpHandle, left: left * hc?.a, top: -2 }}
+        ref={handleRef}
+        style={{
+          ...defaultStyles.rbgcpHandle,
+          left: left * displayOpacityRef.current,
+          top: -2,
+          transition: 'none',
+        }}
       />
       <div
         ref={opacityRef}

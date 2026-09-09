@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useEffect, useLayoutEffect } from 'react'
 import { usePicker } from '../context.js'
 import usePaintHue from '../hooks/usePaintHue.js'
 import { getHandleValue } from '../utils/utils.js'
@@ -15,46 +15,95 @@ const Hue = () => {
     pickerIdSuffix,
     startInteraction,
   } = usePicker()
-  const [dragging, setDragging] = useState(false)
   const { barSize } = config
   usePaintHue(barRef, squareWidth)
 
   const hueRef = useRef<HTMLDivElement>(null)
+  const handleRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+  const didDragRef = useRef(false)
+  const pendingHueRef = useRef<number | null>(null)
+  const displayHueRef = useRef(hc?.h ?? 0)
+  const frameRef = useRef<number | null>(null)
+  const hcRef = useRef(hc)
+  const handleChangeRef = useRef(handleChange)
 
-  const stopDragging = () => {
-    setDragging(false)
-  }
+  useEffect(() => {
+    hcRef.current = hc
+    handleChangeRef.current = handleChange
+  }, [hc, handleChange])
+
+  useLayoutEffect(() => {
+    if (!draggingRef.current) {
+      displayHueRef.current = hc?.h ?? 0
+      if (handleRef.current) {
+        handleRef.current.style.left = `${displayHueRef.current * ((squareWidth - 18) / 360)}px`
+      }
+    }
+  }, [hc?.h, squareWidth])
 
   const handleDown = () => {
     startInteraction()
-    setDragging(true)
+    draggingRef.current = true
+    didDragRef.current = false
   }
 
   const handleHue = (x: number) => {
     if (hueRef.current) {
       const newHue = getHandleValue(x, hueRef.current, barSize) * 3.6
-      const tinyHsv = tinycolor({ h: newHue, s: hc?.s, v: hc?.v })
-      const { r, g, b } = tinyHsv.toRgb()
-      handleChange(`rgba(${r}, ${g}, ${b}, ${hc.a})`)
-      setHc({ ...hc, h: newHue })
+      pendingHueRef.current = newHue
+      displayHueRef.current = newHue
+      window.dispatchEvent(
+        new CustomEvent('rbgcp-hue-preview', {
+          detail: { hue: newHue, pickerIdSuffix },
+        })
+      )
+
+      if (handleRef.current) {
+        handleRef.current.style.left = `${newHue * ((squareWidth - 18) / 360)}px`
+      }
+
+      if (frameRef.current === null) {
+        frameRef.current = requestAnimationFrame(() => {
+          frameRef.current = null
+          const hue = pendingHueRef.current
+          if (hue === null) return
+
+          const currentHc = hcRef.current
+          const tinyHsv = tinycolor({
+            h: hue,
+            s: currentHc?.s,
+            v: currentHc?.v,
+          })
+          const { r, g, b } = tinyHsv.toRgb()
+          handleChangeRef.current(`rgba(${r}, ${g}, ${b}, ${currentHc.a})`)
+        })
+      }
     }
   }
 
   const handleMove = (e: any) => {
-    if (dragging) {
+    if (draggingRef.current) {
+      didDragRef.current = true
       handleHue(e.clientX)
     }
   }
 
   const handleClick = (e: any) => {
-    if (!dragging) {
+    if (!didDragRef.current) {
       handleHue(e.clientX)
     }
+    didDragRef.current = false
   }
 
   useEffect(() => {
     const handleUp = () => {
-      stopDragging()
+      const hue = pendingHueRef.current
+      const currentHc = hcRef.current
+      if (hue !== null && currentHc?.s === 0) {
+        setHc({ ...currentHc, h: hue })
+      }
+      draggingRef.current = false
     }
 
     window.addEventListener('pointerup', handleUp)
@@ -63,8 +112,11 @@ const Hue = () => {
     return () => {
       window.removeEventListener('pointerup', handleUp)
       window.removeEventListener('pointermove', handleMove)
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+      }
     }
-  }, [dragging])
+  }, [pickerIdSuffix, setHc])
 
   return (
     <div
@@ -92,9 +144,8 @@ const Hue = () => {
           width: '18px',
           height: '18px',
           zIndex: 1000,
-          transition: 'all 10ms linear',
           position: 'absolute',
-          left: hc?.h * ((squareWidth - 18) / 360),
+          left: displayHueRef.current * ((squareWidth - 18) / 360),
           top: -2,
           cursor: 'ew-resize',
           boxSizing: 'border-box',
