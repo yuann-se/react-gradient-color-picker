@@ -1,16 +1,31 @@
 import { useState } from 'react'
-import ColorPicker from '@yuann-se/react-gradient-color-picker'
+import ColorPicker from '@zdila/react-gradient-color-picker'
 
 const solidStart = 'rgba(224, 91, 70, 1)'
-const gradientStart =
-  'linear-gradient(90deg, rgba(224,91,70,1) 0%, rgba(245,196,84,1) 100%)'
+const gradientWithAchromaticStart =
+  'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(245,196,84,1) 100%)'
+const gradientWithChromaticStart =
+  'linear-gradient(90deg, RGBA(101, 224, 70, 1) 0%, rgba(69,132,245,1) 100%)'
 
 function App() {
-  const [value, setValue] = useState(solidStart)
+  const [value, setValue] = useState(gradientWithAchromaticStart)
+  const [selectedGradient, setSelectedGradient] = useState<'a' | 'b' | null>(
+    'a'
+  )
   const [size, setSize] = useState(360)
 
-  const setSolid = () => setValue(solidStart)
-  const setGradient = () => setValue(gradientStart)
+  const setSolid = () => {
+    setSelectedGradient(null)
+    setValue(solidStart)
+  }
+  const setAchromaticGradient = () => {
+    setSelectedGradient('a')
+    setValue(gradientWithAchromaticStart)
+  }
+  const setChromaticGradient = () => {
+    setSelectedGradient('b')
+    setValue(gradientWithChromaticStart)
+  }
 
   return (
     <main className="page-shell">
@@ -47,10 +62,16 @@ function App() {
                 Solid
               </button>
               <button
-                className={value.includes('gradient') ? 'active' : ''}
-                onClick={setGradient}
+                className={selectedGradient === 'a' ? 'active' : ''}
+                onClick={setAchromaticGradient}
               >
-                Gradient
+                Gradient A
+              </button>
+              <button
+                className={selectedGradient === 'b' ? 'active' : ''}
+                onClick={setChromaticGradient}
+              >
+                Gradient B
               </button>
             </div>
           </div>

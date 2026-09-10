@@ -11,6 +11,7 @@ const Hue = () => {
     handleChange,
     squareWidth,
     hc,
+    currentColor,
     setHc,
     pickerIdSuffix,
     startInteraction,
@@ -35,12 +36,12 @@ const Hue = () => {
 
   useLayoutEffect(() => {
     if (!draggingRef.current) {
-      displayHueRef.current = hc?.h ?? 0
+      displayHueRef.current = tinycolor(currentColor).toHsv().h
       if (handleRef.current) {
         handleRef.current.style.left = `${displayHueRef.current * ((squareWidth - 18) / 360)}px`
       }
     }
-  }, [hc?.h, squareWidth])
+  }, [currentColor, squareWidth])
 
   const handleDown = () => {
     startInteraction()

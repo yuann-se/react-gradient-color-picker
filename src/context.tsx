@@ -3,6 +3,7 @@ import React, {
   useContext,
   ReactNode,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
@@ -52,10 +53,8 @@ export default function PickerContextWrapper({
   const hsv = tinyColor.toHsv()
   const [hc, setHc] = useState({ ...rgba, ...hsv })
 
-  useEffect(() => {
-    setHc((previousHc: typeof hc) =>
-      hsv?.s === 0 ? { ...rgba, ...hsv, h: previousHc?.h } : { ...rgba, ...hsv }
-    )
+  useLayoutEffect(() => {
+    setHc(() => ({ ...rgba, ...hsv }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentColor])
 
@@ -97,6 +96,14 @@ export default function PickerContextWrapper({
     const sorted = newColors.sort(
       (a: GradientProps, b: GradientProps) => a.left - b.left
     )
+    const selectedIndex = sorted.findIndex((color) => isUpperCase(color.value))
+    const selected = sorted[selectedIndex]
+    if (selected && selectedIndex !== selectedColor) {
+      const selectedTinyColor = tinycolor(selected.value)
+      const selectedRgba = selectedTinyColor.toRgb()
+      const selectedHsv = selectedTinyColor.toHsv()
+      setHc(() => ({ ...selectedRgba, ...selectedHsv }))
+    }
     const colorString = sorted?.map((cc: any) => `${cc?.value} ${cc.left}%`)
     const newGrade = `${gradientType}(${degreeStr}, ${colorString.join(', ')})`
     setPrevious({ ...previous, gradient: newGrade })

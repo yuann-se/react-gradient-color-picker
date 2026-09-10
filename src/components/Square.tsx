@@ -1,5 +1,5 @@
 import { computePickerPosition, computeSquareXY } from '../utils/utils.js'
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import usePaintSquare from '../hooks/usePaintSquare.js'
 import { usePicker } from '../context.js'
 import tinycolor from 'tinycolor2'
@@ -7,6 +7,7 @@ import tinycolor from 'tinycolor2'
 const Square = () => {
   const {
     hc,
+    currentColor,
     config,
     squareWidth,
     squareHeight,
@@ -50,12 +51,13 @@ const Square = () => {
     }
   }, [pickerIdSuffix])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!dragging) {
-      squareHueRef.current = hc?.h ?? 0
-      setSquareHue(hc?.h ?? 0)
+      const currentHue = tinycolor(currentColor).toHsv().h
+      squareHueRef.current = currentHue
+      setSquareHue(currentHue)
     }
-  }, [dragging, hc?.h])
+  }, [currentColor, dragging])
 
   useEffect(() => {
     if (!dragging) {
