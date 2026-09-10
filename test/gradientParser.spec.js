@@ -7,8 +7,8 @@ describe('gradientParser', () => {
 
     expect(gradientParser(gradient)).toEqual({
       colorStops: [
-        { left: 0, type: 'hex', value: '012345' },
-        { left: 100, type: 'hex', value: '6789AB' },
+        { left: 0, value: 'RGBA(1, 35, 69, 1)' },
+        { left: 100, value: 'rgba(103, 137, 171, 1)' },
       ],
       orientation: { type: 'angular', value: '45' },
       type: 'linear-gradient',
