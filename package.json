@@ -1,6 +1,6 @@
 {
   "name": "@yuann-se/react-gradient-color-picker",
-  "version": "3.3.1",
+  "version": "3.3.3",
   "description": "An easy to use color/gradient picker for React.js (fork with pointer-event drag support, mobile/touch support, and assorted fixes)",
   "type": "module",
   "sideEffects": [
