@@ -45,6 +45,20 @@ export type ColorsProps = {
   left?: number
 }
 
+export type GradientObject =
+  | {
+      isGradient: true
+      gradientType: string | undefined
+      degrees: string
+      colors: ColorsProps[]
+    }
+  | {
+      isGradient: false
+      gradientType: null
+      degrees: null
+      colors: ColorsProps[]
+    }
+
 export type GradientProps = {
   value: string
   index: number

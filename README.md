@@ -4,9 +4,15 @@
 
 # 🚀 About this fork
 
-`@zdila/react-gradient-color-picker` is a maintained fork of
-[react-best-gradient-color-picker](https://github.com/hxf31891/react-gradient-color-picker)
-that bundles a set of community improvements:
+`@yuann-se/react-gradient-color-picker` is a fork of the maintained
+`@zdila/react-gradient-color-picker` fork, which itself is based on
+[react-best-gradient-color-picker](https://github.com/hxf31891/react-gradient-color-picker).
+
+This fork keeps the improvements from `@zdila` and adds performance fixes for
+the Hue and opacity sliders. During pointer dragging, slider handles update
+without unnecessary React re-renders, keeping the controls responsive.
+
+## Improvements inherited from the `@zdila` fork
 
 - **Drag outside the component** — dragging the saturation square, hue, opacity and gradient
   sliders no longer freezes when the cursor leaves the picker.
@@ -26,22 +32,22 @@ It merges the following upstream pull requests:
 [#130](https://github.com/hxf31891/react-gradient-color-picker/pull/130) and
 [#132](https://github.com/hxf31891/react-gradient-color-picker/pull/132).
 
-### 📦 Install
+### 📦 Install this fork
 
 ```bash
-pnpm add @zdila/react-gradient-color-picker
+pnpm add @yuann-se/react-gradient-color-picker
 # or
-yarn add @zdila/react-gradient-color-picker
+yarn add @yuann-se/react-gradient-color-picker
 # or
-npm install @zdila/react-gradient-color-picker
+npm install @yuann-se/react-gradient-color-picker
 ```
 
 ```jsx
-import ColorPicker from '@zdila/react-gradient-color-picker'
+import ColorPicker from '@yuann-se/react-gradient-color-picker'
 ```
 
-> 💡 The API is a superset of the upstream package — existing props are unchanged; this
-> fork only adds the optional `onDragStart` / `onDragEnd` callbacks.
+> 💡 The API remains compatible with the upstream package. This fork preserves
+> the optional `onDragStart` / `onDragEnd` callbacks introduced by `@zdila`.
 
 <br/>
 <br/>
